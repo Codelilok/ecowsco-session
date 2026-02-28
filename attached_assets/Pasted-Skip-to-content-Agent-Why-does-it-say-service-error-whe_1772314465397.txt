@@ -1,0 +1,126 @@
+Skip to content
+Agent
+Why does it say service error when I use the pair code
+
+$ cat /tmp/logs/Start_Application_20260228_213102_026.log
+The "service error" occurred because the website was looking for a property named code in the server's response, but the server was actually sending it as pairingCode.
+
+I've fixed this by:
+
+Updating the website code: I corrected the frontend to correctly read the pairingCode from the server.
+Improving Error Visibility: I added detailed error logging to both the server and the website. This will help identify if there are other underlying issues (like network or permission problems) by showing the specific error message instead of a generic "Service Error".
+Ensuring Directory Permissions: I made sure the routes/session folder exists and has
+the correct permissions to store temporary connection data.
+
+The pairing service should now correctly display your code when you enter your phone number.
+
+
+Make lightweight changes, quickly…
+index.js
+gifted-session-main.zip
+Failed to load binary file
+package.json
+Shell
+Enable "Accessible Terminal" in Workspace Settings to use a screen reader with the shell.
+Port :50900 opened on
+index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ECOWSCO-MD | WhatsApp Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --blue1: rgba(30,144,255,0.3);
+            --blue2: rgba(0,191,255,0.3);
+            --text-light: #f8f9fa;
+            --gray: #adb5bd;
+            --shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0a1b2a;
+            color: var(--text-light);
+            min-height: 100vh;
+            display:flex;
+            flex-direction:column;
+            overflow-x:hidden;
+        }
+
+        /* Floating particles */
+        .particles { position: fixed; top:0; left:0; width:100%; height:100%; z-index:-1; overflow:hidden; }
+        .particle { position:absolute; background: rgba(30,144,255,0.3); border-radius:50%; animation: float linear infinite; }
+        @keyframes float { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(-100vh) rotate(360deg); } }
+Preview
+/pair
+
+2026-02-28 21:30:09.26
+Error:
+{message: "Request failed with status code 500", name: "AxiosError", stack: "AxiosError: Request failed with status code 500 at https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js:1:11403 at XMLHttpRequest.p (https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js:1:11548)", config: Object, code: "ERR_BAD_RESPONSE"…}
+message: "Request failed with status code 500"
+name: "AxiosError"
+stack: "AxiosError: Request failed with status code 500 at https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js:1:11403 at XMLHttpRequest.p (https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js:1:11548)"
+config: Object
+code: "ERR_BAD_RESPONSE"
+status: 500
+2026-02-28 21:33:23.01
+Error details:
+{error: "Pairing service unavailable"}
+pair.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ECOWSCO-MD | PAIR CODE</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root {
+        --primary: #3b82f6;
+        --secondary: #60a5fa;
+        --accent: #93c5fd;
+        --text: #ffffff;
+        --text-light: #d1d5db;
+        --background: rgba(59,130,246,0.05);
+        --card-bg: rgba(59, 130, 246, 0.25);
+        --input-bg: rgba(59, 130, 246, 0.15);
+        --success: #4caf50;
+        --error: #f44336;
+        --shadow: 0 10px 20px rgba(0,0,0,0.3);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; transition:var(--transition); }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--background);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        background-image: radial-gradient(circle at 10% 20%, rgba(59,130,246,0.1) 0%, transparent 20%), radial-gradient(circle at 90% 80%, rgba(147,197,253,0.1) 0%, transparent 20%);
+        animation: gradientPulse 15s ease infinite;
+    }
+
+    @keyframes gradientPulse {
+Files
+ecowsco
+public
+routes
+app.json
+CNAME
+heroku.yml
+index.js
+README.md
+Packager files
+package.json
+Preview
+Preview your App.

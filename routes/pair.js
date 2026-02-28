@@ -50,7 +50,8 @@ router.get('/', async (req, res) => {
                 version,
                 auth: state,
                 printQRInTerminal: false,
-                logger: pino({ level: "silent" })
+                logger: pino({ level: "fatal" }),
+                browser: ["Ubuntu", "Chrome", "20.0.04"]
             });
 
             Bot.ev.on('creds.update', saveCreds);
@@ -101,6 +102,7 @@ router.get('/', async (req, res) => {
                 }
             });
 
+            console.log(`Requesting pairing code for: ${number}`);
             const pairingCode = await Bot.requestPairingCode(number);
             console.log(`Pairing code generated for ${number}: ${pairingCode}`);
 
