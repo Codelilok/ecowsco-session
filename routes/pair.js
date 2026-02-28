@@ -56,10 +56,48 @@ router.get('/', async (req, res) => {
 
             Bot.ev.on('creds.update', saveCreds);
 
+            // Wait for the connection to be established before requesting pairing code
+            await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => reject(new Error("Connection timeout")), 15000);
+                Bot.ev.on("connection.update", ({ connection, lastDisconnect }) => {
+                    if (connection === "open") {
+                        clearTimeout(timeout);
+                        resolve();
+                    } else if (connection === "close") {
+                        const code = lastDisconnect?.error?.output?.statusCode;
+                        if (code !== 401) { // 401 is normal for initial connection
+                            clearTimeout(timeout);
+                            reject(new Error("Connection closed during setup"));
+                        }
+                    }
+                });
+                
+                // For pairing code, we actually need to wait for 'messaging-history.set' or similar 
+                // but usually just waiting for the socket to be ready is enough.
+                // Baileys requestPairingCode handles the wait internally if called after connect.
+                // However, "Connection Closed" 428 means we sent the request before the socket was ready.
+                Bot.ev.on('connection.update', ({ isOnline }) => {
+                    if (isOnline) {
+                        clearTimeout(timeout);
+                        resolve();
+                    }
+                });
+            });
+
+            console.log(`Requesting pairing code for: ${number}`);
+            const pairingCode = await Bot.requestPairingCode(number);
+            console.log(`Pairing code generated for ${number}: ${pairingCode}`);
+
+            if (!responseSent) {
+                res.json({
+                    pairingCode: pairingCode
+                });
+                responseSent = true;
+            }
+
+            // Move the connection update listener here to wait for the session after pairing code is sent
             Bot.ev.on("connection.update", async ({ connection }) => {
-
                 if (connection === "open") {
-
                     await delay(10000);
 
                     let sessionData = null;
@@ -101,17 +139,6 @@ router.get('/', async (req, res) => {
                     await cleanUpSession();
                 }
             });
-
-            console.log(`Requesting pairing code for: ${number}`);
-            const pairingCode = await Bot.requestPairingCode(number);
-            console.log(`Pairing code generated for ${number}: ${pairingCode}`);
-
-            if (!responseSent) {
-                res.json({
-                    pairingCode: pairingCode
-                });
-                responseSent = true;
-            }
 
         } catch (error) {
             console.error("Error in ECOWSCO_PAIR_CODE:", error);
