@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ECOWSCO-MD | WhatsApp Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --blue1: rgba(30,144,255,0.3);
+            --blue2: rgba(0,191,255,0.3);
+            --text-light: #f8f9fa;
+            --gray: #adb5bd;
+            --shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0a1b2a;
+            color: var(--text-light);
+            min-height: 100vh;
+            display:flex;
+            flex-direction:column;
+            overflow-x:hidden;
+        }
+
+        /* Floating particles */
+        .particles { position: fixed; top:0; left:0; width:100%; height:100%; z-index:-1; overflow:hidden; }
+        .particle { position:absolute; background: rgba(30,144,255,0.3); border-radius:50%; animation: float linear infinite; }
+        @keyframes float { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(-100vh) rotate(360deg); } }
+
+        /* Glass Hero Card */
+        .glass-card {
+            max-width: 700px;
+            margin: 10vh auto 5vh;
+            background: rgba(30,144,255,0.2);
+            backdrop-filter: blur(15px);
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(0,191,255,0.3);
+        }
+
+        .glass-card h1 {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .glass-card p {
+            color: var(--gray);
+            font-size: 1.1rem;
+            line-height:1.6;
+        }
+
+        .hero-buttons {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .hero-buttons a {
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            background: var(--blue1);
+            backdrop-filter: blur(10px);
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .hero-buttons a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0,191,255,0.4);
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(0,0,50,0.5);
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid rgba(0,191,255,0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        footer p {
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        @media (max-width:768px){
+            .glass-card { margin: 8vh 1rem 5vh; }
+            .glass-card h1 { font-size:2rem; }
+            .hero-buttons { flex-direction: column; }
+            .hero-buttons a { width:100%; text-align:center; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Particles Background -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Hero Card -->
+    <div class="glass-card">
+        <h1>ECOWSCO-MD</h1>
+        <p>Your advanced WhatsApp bot session management</p>
+        <div class="hero-buttons">
+            <a href="./pair"><i class="fas fa-link"></i> Get Pair Code</a>
+            <a href="./qr"><i class="fas fa-qrcode"></i> Scan QR Code</a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>MADE BY THEAIKID | © 2026 | ECOWSCO-MD</p>
+    </footer>
+
+    <!-- Particle JS -->
+    <script>
+        const particlesContainer = document.getElementById('particles');
+        const numParticles = 50;
+        for(let i=0;i<numParticles;i++){
+            const p = document.createElement('div');
+            p.classList.add('particle');
+            let size = Math.random()*6+4;
+            p.style.width = size+'px';
+            p.style.height = size+'px';
+            p.style.left = Math.random()*100+'%';
+            p.style.top = Math.random()*100+'%';
+            p.style.animationDuration = (5 + Math.random()*10)+'s';
+            particlesContainer.appendChild(p);
+        }
+    </script>
+</body>
+</html>
+
