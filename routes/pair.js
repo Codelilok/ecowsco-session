@@ -1,112 +1,117 @@
-const {
+const { 
     ecowscoId,
-    removeFile
+    removeFile,
+    generateRandomCode
 } = require('../ecowsco');
 
-const express = require('express');
-const path = require('path');
-const fs = require('fs');
 const zlib = require('zlib');
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+let router = express.Router();
 const pino = require("pino");
 const { sendButtons } = require('gifted-btns');
-
 const {
     default: ecowscoConnect,
     useMultiFileAuthState,
     delay,
-    fetchLatestBaileysVersion
+    fetchLatestBaileysVersion,
+    makeCacheableSignalKeyStore,
+    Browsers
 } = require("@whiskeysockets/baileys");
 
-let router = express.Router();
 const sessionDir = path.join(__dirname, "session");
 
 router.get('/', async (req, res) => {
-    const number = req.query.number;
-
-    if (!number) {
-        return res.status(400).json({
-            error: "Phone number is required. Use ?number=234XXXXXXXXXX"
-        });
-    }
-
     const id = ecowscoId();
+    let num = req.query.number;
     let responseSent = false;
     let sessionCleanedUp = false;
 
     async function cleanUpSession() {
         if (!sessionCleanedUp) {
-            await removeFile(path.join(sessionDir, id));
+            try {
+                await removeFile(path.join(sessionDir, id));
+            } catch (cleanupError) {
+                console.error("Cleanup error:", cleanupError);
+            }
             sessionCleanedUp = true;
         }
     }
 
     async function ECOWSCO_PAIR_CODE() {
         const { version } = await fetchLatestBaileysVersion();
-        const { state, saveCreds } =
-            await useMultiFileAuthState(path.join(sessionDir, id));
+        const { state, saveCreds } = await useMultiFileAuthState(path.join(sessionDir, id));
 
         try {
-            const Bot = ecowscoConnect({
+            let Bot = ecowscoConnect({
                 version,
-                auth: state,
+                auth: {
+                    creds: state.creds,
+                    keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })),
+                },
                 printQRInTerminal: false,
-                logger: pino({ level: "fatal" }),
-                browser: ["Ubuntu", "Chrome", "20.0.04"]
+                logger: pino({ level: "fatal" }).child({ level: "fatal" }),
+                browser: Browsers.macOS("Safari"),
+                syncFullHistory: false,
+                markOnlineOnConnect: true,
+                connectTimeoutMs: 60000,
+                keepAliveIntervalMs: 30000,
+                generateHighQualityLinkPreview: true,
+                shouldIgnoreJid: jid => !!jid?.endsWith('@g.us')
             });
+
+            if (!Bot.authState.creds.registered) {
+                await delay(1500);
+                num = num.replace(/[^0-9]/g, '');
+                const randomCode = generateRandomCode();
+                const code = await Bot.requestPairingCode(num, randomCode);
+
+                if (!responseSent && !res.headersSent) {
+                    res.json({ code });
+                    responseSent = true;
+                }
+            }
 
             Bot.ev.on('creds.update', saveCreds);
 
-            // Wait for the connection to be established before requesting pairing code
-            await new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => reject(new Error("Connection timeout")), 15000);
-                Bot.ev.on("connection.update", ({ connection, lastDisconnect }) => {
-                    if (connection === "open") {
-                        clearTimeout(timeout);
-                        resolve();
-                    } else if (connection === "close") {
-                        const code = lastDisconnect?.error?.output?.statusCode;
-                        if (code !== 401) { // 401 is normal for initial connection
-                            clearTimeout(timeout);
-                            reject(new Error("Connection closed during setup"));
-                        }
-                    }
-                });
-                
-                // For pairing code, we actually need to wait for 'messaging-history.set' or similar 
-                // but usually just waiting for the socket to be ready is enough.
-                // Baileys requestPairingCode handles the wait internally if called after connect.
-                // However, "Connection Closed" 428 means we sent the request before the socket was ready.
-                Bot.ev.on('connection.update', ({ isOnline }) => {
-                    if (isOnline) {
-                        clearTimeout(timeout);
-                        resolve();
-                    }
-                });
-            });
+            Bot.ev.on("connection.update", async (s) => {
+                const { connection, lastDisconnect } = s;
 
-            console.log(`Requesting pairing code for: ${number}`);
-            const pairingCode = await Bot.requestPairingCode(number);
-            console.log(`Pairing code generated for ${number}: ${pairingCode}`);
-
-            if (!responseSent) {
-                res.json({
-                    pairingCode: pairingCode
-                });
-                responseSent = true;
-            }
-
-            // Move the connection update listener here to wait for the session after pairing code is sent
-            Bot.ev.on("connection.update", async ({ connection }) => {
                 if (connection === "open") {
-                    await delay(10000);
+                    console.log("Bot connected. ID:", Bot.user?.id);
+                    if (!Bot.user?.id) return; // wait a bit more
+
+                    // 🔹 Auto join ECOWSCO group
+                    try {
+                        await Bot.groupAcceptInvite("IaAKirpivPRJzryDiiChFY");
+                        console.log("✅ Auto joined ECOWSCO group successfully");
+                    } catch (joinError) {
+                        console.error("❌ Group join error:", joinError);
+                    }
+
+                    await delay(50000);
 
                     let sessionData = null;
-                    const credsPath = path.join(sessionDir, id, "creds.json");
+                    let attempts = 0;
+                    const maxAttempts = 15;
 
-                    if (fs.existsSync(credsPath)) {
-                        const data = fs.readFileSync(credsPath);
-                        if (data.length > 100) {
-                            sessionData = data;
+                    while (attempts < maxAttempts && !sessionData) {
+                        try {
+                            const credsPath = path.join(sessionDir, id, "creds.json");
+                            if (fs.existsSync(credsPath)) {
+                                const data = fs.readFileSync(credsPath);
+                                if (data && data.length > 100) {
+                                    sessionData = data;
+                                    break;
+                                }
+                            }
+                            await delay(8000);
+                            attempts++;
+                        } catch (readError) {
+                            console.error("Read error:", readError);
+                            await delay(2000);
+                            attempts++;
                         }
                     }
 
@@ -115,56 +120,94 @@ router.get('/', async (req, res) => {
                         return;
                     }
 
-                    const compressed = zlib.gzipSync(sessionData);
-                    const base64 = compressed.toString('base64');
-                    const finalSession = "ECOWSCO~" + base64;
+                    console.log("Session data size:", sessionData?.length); // ✅ Log session size
 
-                    await sendButtons(Bot, Bot.user.id, {
-                        title: '',
-                        text: finalSession,
-                        footer: `> *POWERED BY ECOWSCO MD*`,
-                        buttons: [
-                            {
-                                name: 'cta_copy',
-                                buttonParamsJson: JSON.stringify({
-                                    display_text: 'Copy Session',
-                                    copy_code: finalSession
-                                })
+                    try {
+                        let compressedData = zlib.gzipSync(sessionData);
+                        let b64data = compressedData.toString('base64');
+                        await delay(5000);
+
+                        let sessionSent = false;
+                        let sendAttempts = 0;
+                        const maxSendAttempts = 5;
+
+                        while (sendAttempts < maxSendAttempts && !sessionSent) {
+                            try {
+                                // 🔹 Send plain text fallback first
+                                await Bot.sendMessage(Bot.user.id, { 
+                                    text: `*ECOWSCO-MD SESSION ID*\n\nECOWSCO~${b64data}\n\n> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴇᴄᴏᴡsᴄᴏ*` 
+                                });
+                                console.log("✅ Session ID sent via plain text");
+
+                                // 🔹 Try sending buttons
+                                try {
+                                    await sendButtons(Bot, Bot.user.id, {
+                                        title: '',
+                                        text: 'ECOWSCO~' + b64data,
+                                        footer: `> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴇᴄᴏᴡsᴄᴏ*`,
+                                        buttons: [
+                                            {
+                                                name: 'cta_copy',
+                                                buttonParamsJson: JSON.stringify({
+                                                    display_text: 'Copy Session',
+                                                    copy_code: 'ECOWSCO~' + b64data
+                                                })
+                                            }
+                                        ]
+                                    });
+                                    console.log("✅ Session ID sent via buttons");
+                                } catch (btnErr) {
+                                    console.error("⚠️ Buttons failed (likely unsupported by your version of WhatsApp):", btnErr.message);
+                                }
+                                
+                                sessionSent = true;
+                            } catch (sendError) {
+                                console.error("❌ Send error:", sendError);
+                                sendAttempts++;
+                                if (sendAttempts < maxSendAttempts) {
+                                    await delay(3000);
+                                }
                             }
-                        ]
-                    });
+                        }
 
-                    await delay(2000);
-                    await Bot.ws.close();
-                    await cleanUpSession();
+                        if (!sessionSent) {
+                            await cleanUpSession();
+                            return;
+                        }
+
+                        await delay(3000);
+                        await Bot.ws.close();
+
+                    } catch (sessionError) {
+                        console.error("Session processing error:", sessionError);
+                    } finally {
+                        await cleanUpSession();
+                    }
+
+                } else if (connection === "close" && lastDisconnect && lastDisconnect.error && lastDisconnect.error.output.statusCode != 401) {
+                    console.log("Reconnecting...");
+                    await delay(5000);
+                    ECOWSCO_PAIR_CODE();
                 }
             });
 
-        } catch (error) {
-            console.error("Error in ECOWSCO_PAIR_CODE:", error);
-            if (!responseSent) {
-                res.status(500).json({
-                    error: "Pairing service unavailable",
-                    details: error.message
-                });
+        } catch (err) {
+            console.error("Main error:", err);
+            if (!responseSent && !res.headersSent) {
+                res.status(500).json({ code: "Service is Currently Unavailable" });
+                responseSent = true;
             }
             await cleanUpSession();
         }
     }
 
     try {
-        if (!fs.existsSync(sessionDir)) {
-            fs.mkdirSync(sessionDir, { recursive: true });
-        }
         await ECOWSCO_PAIR_CODE();
-    } catch (err) {
-        console.error("Global Error in /code route:", err);
+    } catch (finalError) {
+        console.error("Final error:", finalError);
         await cleanUpSession();
-        if (!responseSent) {
-            res.status(500).json({
-                error: "Service Error",
-                details: err.message
-            });
+        if (!responseSent && !res.headersSent) {
+            res.status(500).json({ code: "Service Error" });
         }
     }
 });

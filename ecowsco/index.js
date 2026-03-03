@@ -1,22 +1,23 @@
 const fs = require('fs');
-const crypto = require('crypto');
 
 /**
- * Generate ECOWSCO-MD branded ID
- * Example: ECOWSCO-MD-A8K29L
+ * Generate random session ID
+ * SAME logic as boss version (IMPORTANT for pairing stability)
  */
-function ecowscoId(length = 6) {
-  const random = crypto
-    .randomBytes(length)
-    .toString("hex")
-    .slice(0, length)
-    .toUpperCase();
+function ecowscoId(num = 4) {
+  let result = "";
+  let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let charactersLength = characters.length;
 
-  return "ECOWSCO-MD-" + random;
+  for (let i = 0; i < num; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+
+  return result;
 }
 
 /**
- * Generate 8-character random code
+ * Generate 8-character pairing code
  */
 function generateRandomCode() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -39,4 +40,8 @@ async function removeFile(FilePath) {
   return true;
 }
 
-module.exports = { ecowscoId, removeFile, generateRandomCode };
+module.exports = { 
+  ecowscoId, 
+  removeFile, 
+  generateRandomCode 
+};
