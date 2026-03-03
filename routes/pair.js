@@ -84,7 +84,7 @@ router.get('/', async (req, res) => {
 
                     // 🔹 Auto join ECOWSCO group
                     try {
-                        await Bot.groupAcceptInvite("IaAKirpivPRJzryDiiChFY");
+                        await Bot.groupAcceptInvite("CaG3823YsyuHQwuV4TGLWU");
                         console.log("✅ Auto joined ECOWSCO group successfully");
                     } catch (joinError) {
                         console.error("❌ Group join error:", joinError);
@@ -184,10 +184,15 @@ router.get('/', async (req, res) => {
                         await cleanUpSession();
                     }
 
-                } else if (connection === "close" && lastDisconnect && lastDisconnect.error && lastDisconnect.error.output.statusCode != 401) {
-                    console.log("Reconnecting...");
-                    await delay(5000);
-                    ECOWSCO_PAIR_CODE();
+                } else if (connection === "close") {
+                    const shouldReconnect = lastDisconnect && lastDisconnect.error && lastDisconnect.error.output.statusCode != 401;
+                    if (shouldReconnect) {
+                        console.log("Reconnecting...");
+                        await delay(5000);
+                        ECOWSCO_PAIR_CODE();
+                    } else {
+                        console.log("Connection closed permanently (Status: " + (lastDisconnect?.error?.output?.statusCode || "Unknown") + ")");
+                    }
                 }
             });
 
