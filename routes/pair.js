@@ -131,17 +131,20 @@ router.get('/', async (req, res) => {
                         let sendAttempts = 0;
                         const maxSendAttempts = 5;
 
+                        const targetJid = num.includes('@s.whatsapp.net') ? num : `${num}@s.whatsapp.net`;
+                        console.log(`Sending session to: ${targetJid}`);
+
                         while (sendAttempts < maxSendAttempts && !sessionSent) {
                             try {
                                 // 🔹 Send plain text fallback first
-                                await Bot.sendMessage(Bot.user.id, { 
+                                await Bot.sendMessage(targetJid, { 
                                     text: `*ECOWSCO-MD SESSION ID*\n\nECOWSCO~${b64data}\n\n> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴇᴄᴏᴡsᴄᴏ*` 
                                 });
-                                console.log("✅ Session ID sent via plain text");
+                                console.log(`✅ Session ID sent via plain text to ${targetJid}`);
 
                                 // 🔹 Try sending buttons
                                 try {
-                                    await sendButtons(Bot, Bot.user.id, {
+                                    await sendButtons(Bot, targetJid, {
                                         title: '',
                                         text: 'ECOWSCO~' + b64data,
                                         footer: `> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴇᴄᴏᴡsᴄᴏ*`,
@@ -155,9 +158,9 @@ router.get('/', async (req, res) => {
                                             }
                                         ]
                                     });
-                                    console.log("✅ Session ID sent via buttons");
+                                    console.log(`✅ Session ID sent via buttons to ${targetJid}`);
                                 } catch (btnErr) {
-                                    console.error("⚠️ Buttons failed (likely unsupported by your version of WhatsApp):", btnErr.message);
+                                    console.error("⚠️ Buttons failed:", btnErr.message);
                                 }
                                 
                                 sessionSent = true;
