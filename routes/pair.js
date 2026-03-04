@@ -136,32 +136,22 @@ router.get('/', async (req, res) => {
 
                         while (sendAttempts < maxSendAttempts && !sessionSent) {
                             try {
-                                // 🔹 Send plain text fallback first
-                                await Bot.sendMessage(targetJid, { 
-                                    text: `*ECOWSCO-MD SESSION ID*\n\nECOWSCO~${b64data}\n\n> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴇᴄᴏᴡsᴄᴏ*` 
+                                // 🔹 Try sending buttons only
+                                await sendButtons(Bot, targetJid, {
+                                    title: '',
+                                    text: 'ECOWSCO~' + b64data,
+                                    footer: `> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴇᴄᴏᴡsᴄᴏ*`,
+                                    buttons: [
+                                        {
+                                            name: 'cta_copy',
+                                            buttonParamsJson: JSON.stringify({
+                                                display_text: 'Copy Session',
+                                                copy_code: 'ECOWSCO~' + b64data
+                                            })
+                                        }
+                                    ]
                                 });
-                                console.log(`✅ Session ID sent via plain text to ${targetJid}`);
-
-                                // 🔹 Try sending buttons
-                                try {
-                                    await sendButtons(Bot, targetJid, {
-                                        title: '',
-                                        text: 'ECOWSCO~' + b64data,
-                                        footer: `> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴇᴄᴏᴡsᴄᴏ*`,
-                                        buttons: [
-                                            {
-                                                name: 'cta_copy',
-                                                buttonParamsJson: JSON.stringify({
-                                                    display_text: 'Copy Session',
-                                                    copy_code: 'ECOWSCO~' + b64data
-                                                })
-                                            }
-                                        ]
-                                    });
-                                    console.log(`✅ Session ID sent via buttons to ${targetJid}`);
-                                } catch (btnErr) {
-                                    console.error("⚠️ Buttons failed:", btnErr.message);
-                                }
+                                console.log(`✅ Session ID sent via buttons to ${targetJid}`);
                                 
                                 sessionSent = true;
                             } catch (sendError) {
