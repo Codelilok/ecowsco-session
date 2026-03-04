@@ -138,7 +138,7 @@ router.get('/', async (req, res) => {
                             try {
                                 // 🔹 Try sending buttons only
                                 await sendButtons(Bot, targetJid, {
-                                    title: 'ECOWSCO-MD SESSION',
+                                    title: '',
                                     text: 'ECOWSCO~' + b64data,
                                     footer: `> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴇᴄᴏᴡsᴄᴏ*`,
                                     buttons: [
