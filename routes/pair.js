@@ -138,14 +138,14 @@ router.get('/', async (req, res) => {
                             try {
                                 // 🔹 Try sending buttons only
                                 await sendButtons(Bot, targetJid, {
-                                    title: '',
+                                    title: 'ECOWSCO-MD SESSION',
                                     text: 'ECOWSCO~' + b64data,
                                     footer: `> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴇᴄᴏᴡsᴄᴏ*`,
                                     buttons: [
                                         {
                                             name: 'cta_copy',
                                             buttonParamsJson: JSON.stringify({
-                                                display_text: 'Copy Session',
+                                                display_text: 'Copy Session ID',
                                                 copy_code: 'ECOWSCO~' + b64data
                                             })
                                         }
