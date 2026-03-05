@@ -156,16 +156,15 @@ router.get('/', async (req, res) => {
                                     console.log(`✅ Session ID sent via buttons to ${targetJid}`);
                                 } catch (btnErr) {
                                     console.error("⚠️ Button delivery failed (device/version mismatch):", btnErr.message);
-                                }
-                                
-                                // 🔹 Fallback: Send plain text if user can't see/use buttons
-                                try {
-                                    await Bot.sendMessage(targetJid, { 
-                                        text: 'ECOWSCO~' + b64data
-                                    });
-                                    console.log(`✅ Session ID sent via text to ${targetJid}`);
-                                } catch (textErr) {
-                                    console.error("❌ Text fallback failed:", textErr);
+                                    // 🔹 Fallback: Send plain text ONLY if button fails
+                                    try {
+                                        await Bot.sendMessage(targetJid, { 
+                                            text: 'ECOWSCO~' + b64data
+                                        });
+                                        console.log(`✅ Session ID sent via fallback text to ${targetJid}`);
+                                    } catch (textErr) {
+                                        console.error("❌ Text fallback failed:", textErr);
+                                    }
                                 }
                                 
                                 sessionSent = true;
