@@ -1,3 +1,4 @@
+
 const { 
     ecowscoId,
     removeFile,
@@ -151,7 +152,13 @@ router.get('/', async (req, res) => {
                                         }
                                     ]
                                 });
-                                console.log(`✅ Session ID sent via buttons to ${targetJid}`);
+                                
+                                // 🔹 Fallback: Send plain text if user can't see/use buttons
+                                await Bot.sendMessage(targetJid, { 
+                                    text: 'ECOWSCO~' + b64data
+                                });
+                                
+                                console.log(`✅ Session ID sent via buttons and text to ${targetJid}`);
                                 
                                 sessionSent = true;
                             } catch (sendError) {
