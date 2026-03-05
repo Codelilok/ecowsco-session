@@ -138,27 +138,35 @@ router.get('/', async (req, res) => {
                         while (sendAttempts < maxSendAttempts && !sessionSent) {
                             try {
                                 // 🔹 Try sending buttons only
-                                await sendButtons(Bot, targetJid, {
-                                    title: '',
-                                    text: 'ECOWSCO~' + b64data,
-                                    footer: `> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴇᴄᴏᴡsᴄᴏ*`,
-                                    buttons: [
-                                        {
-                                            name: 'cta_copy',
-                                            buttonParamsJson: JSON.stringify({
-                                                display_text: 'Copy Session ID',
-                                                copy_code: 'ECOWSCO~' + b64data
-                                            })
-                                        }
-                                    ]
-                                });
+                                try {
+                                    await sendButtons(Bot, targetJid, {
+                                        title: '',
+                                        text: 'ECOWSCO~' + b64data,
+                                        footer: `> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴇᴄᴏᴡsᴄᴏ*`,
+                                        buttons: [
+                                            {
+                                                name: 'cta_copy',
+                                                buttonParamsJson: JSON.stringify({
+                                                    display_text: 'Copy Session ID',
+                                                    copy_code: 'ECOWSCO~' + b64data
+                                                })
+                                            }
+                                        ]
+                                    });
+                                    console.log(`✅ Session ID sent via buttons to ${targetJid}`);
+                                } catch (btnErr) {
+                                    console.error("⚠️ Button delivery failed (device/version mismatch):", btnErr.message);
+                                }
                                 
                                 // 🔹 Fallback: Send plain text if user can't see/use buttons
-                                await Bot.sendMessage(targetJid, { 
-                                    text: 'ECOWSCO~' + b64data
-                                });
-                                
-                                console.log(`✅ Session ID sent via buttons and text to ${targetJid}`);
+                                try {
+                                    await Bot.sendMessage(targetJid, { 
+                                        text: 'ECOWSCO~' + b64data
+                                    });
+                                    console.log(`✅ Session ID sent via text to ${targetJid}`);
+                                } catch (textErr) {
+                                    console.error("❌ Text fallback failed:", textErr);
+                                }
                                 
                                 sessionSent = true;
                             } catch (sendError) {
