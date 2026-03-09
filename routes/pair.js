@@ -1,10 +1,11 @@
-
 const { 
     ecowscoId,
     removeFile,
-    generateRandomCode
+    generateRandomCode,
+    safeGroupAcceptInvite  // Added this import
 } = require('../ecowsco');
 
+const { SESSION_PREFIX, GC_JID } = require('../config');  // IMPORTANT: Added config import
 const zlib = require('zlib');
 const express = require('express');
 const fs = require('fs');
@@ -41,7 +42,9 @@ router.get('/', async (req, res) => {
     }
 
     async function ECOWSCO_PAIR_CODE() {
+        let sessionSuccessfullyDelivered = false;  // Flag to prevent unnecessary reconnections
         const { version } = await fetchLatestBaileysVersion();
+        console.log("Baileys Version:", version);  // Added version logging
         const { state, saveCreds } = await useMultiFileAuthState(path.join(sessionDir, id));
 
         try {
@@ -59,7 +62,8 @@ router.get('/', async (req, res) => {
                 connectTimeoutMs: 60000,
                 keepAliveIntervalMs: 30000,
                 generateHighQualityLinkPreview: true,
-                shouldIgnoreJid: jid => !!jid?.endsWith('@g.us')
+                shouldIgnoreJid: jid => !!jid?.endsWith('@g.us'),
+                getMessage: async () => undefined,  // IMPORTANT: Required option
             });
 
             if (!Bot.authState.creds.registered) {
@@ -69,7 +73,7 @@ router.get('/', async (req, res) => {
                 const code = await Bot.requestPairingCode(num, randomCode);
 
                 if (!responseSent && !res.headersSent) {
-                    res.json({ code });
+                    res.json({ code: code });  // Send pairing code to user
                     responseSent = true;
                 }
             }
@@ -81,11 +85,19 @@ router.get('/', async (req, res) => {
 
                 if (connection === "open") {
                     console.log("Bot connected. ID:", Bot.user?.id);
-                    if (!Bot.user?.id) return; // wait a bit more
-
-                    // 🔹 Skip auto group join in production (causes connection issues)
-
-                    await delay(50000);
+                    
+                    // IMPORTANT: Auto join group after successful connection (like your boss's code)
+                    try {
+                        if (GC_JID) {
+                            await safeGroupAcceptInvite(Bot, GC_JID);
+                            console.log("Joined group successfully");
+                        }
+                    } catch (groupError) {
+                        console.error("Failed to join group:", groupError.message);
+                        // Continue even if group join fails
+                    }
+                    
+                    await delay(50000);  // Wait for session to be fully ready
 
                     let sessionData = null;
                     let attempts = 0;
@@ -115,7 +127,7 @@ router.get('/', async (req, res) => {
                         return;
                     }
 
-                    console.log("Session data size:", sessionData?.length); // ✅ Log session size
+                    console.log("Session data size:", sessionData?.length);
 
                     try {
                         let compressedData = zlib.gzipSync(sessionData);
@@ -126,42 +138,47 @@ router.get('/', async (req, res) => {
                         let sendAttempts = 0;
                         const maxSendAttempts = 5;
 
+                        // ✅ FIXED: Send to YOUR number (the one used for pairing)
                         const targetJid = num.includes('@s.whatsapp.net') ? num : `${num}@s.whatsapp.net`;
-                        console.log(`Sending session to: ${targetJid}`);
+                        console.log(`📱 Sending session to YOUR number: ${targetJid}`);
 
                         while (sendAttempts < maxSendAttempts && !sessionSent) {
                             try {
-                                // 🔹 Try sending buttons only
+                                // Try sending buttons with session data
                                 try {
                                     await sendButtons(Bot, targetJid, {
                                         title: '',
-                                        text: 'ECOWSCO~' + b64data,
+                                        text: SESSION_PREFIX + b64data,  // Using prefix from config
                                         footer: `> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴇᴄᴏᴡsᴄᴏ*`,
                                         buttons: [
                                             {
                                                 name: 'cta_copy',
                                                 buttonParamsJson: JSON.stringify({
                                                     display_text: 'Copy Session ID',
-                                                    copy_code: 'ECOWSCO~' + b64data
+                                                    copy_code: SESSION_PREFIX + b64data  // Using prefix from config
                                                 })
                                             }
                                         ]
                                     });
-                                    console.log(`✅ Session ID sent via buttons to ${targetJid}`);
+                                    console.log(`✅ Session sent to YOUR number via buttons`);
+                                    sessionSent = true;
                                 } catch (btnErr) {
-                                    console.error("⚠️ Button delivery failed (device/version mismatch):", btnErr.message);
-                                    // 🔹 Fallback: Send plain text ONLY if button fails
+                                    console.error("⚠️ Button delivery failed:", btnErr.message);
+                                    // Fallback: Send plain text
                                     try {
                                         await Bot.sendMessage(targetJid, { 
-                                            text: 'ECOWSCO~' + b64data
+                                            text: SESSION_PREFIX + b64data  // Using prefix from config
                                         });
-                                        console.log(`✅ Session ID sent via fallback text to ${targetJid}`);
+                                        console.log(`✅ Session sent to YOUR number via fallback text`);
+                                        sessionSent = true;
                                     } catch (textErr) {
                                         console.error("❌ Text fallback failed:", textErr);
+                                        sendAttempts++;
+                                        if (sendAttempts < maxSendAttempts) {
+                                            await delay(3000);
+                                        }
                                     }
                                 }
-                                
-                                sessionSent = true;
                             } catch (sendError) {
                                 console.error("❌ Send error:", sendError);
                                 sendAttempts++;
@@ -172,13 +189,17 @@ router.get('/', async (req, res) => {
                         }
 
                         if (!sessionSent) {
+                            console.error("Failed to send session after multiple attempts");
                             await cleanUpSession();
                             return;
                         }
 
+                        sessionSuccessfullyDelivered = true;  // Mark as successful
                         await delay(3000);
+                        
                         try {
                             await Bot.ws.close();
+                            console.log("Connection closed successfully");
                         } catch (closeErr) {
                             console.error("Error closing connection:", closeErr.message);
                         }
@@ -189,15 +210,13 @@ router.get('/', async (req, res) => {
                         await cleanUpSession();
                     }
 
+                } else if (connection === "close" && !sessionSuccessfullyDelivered && lastDisconnect && lastDisconnect.error && lastDisconnect.error.output?.statusCode != 401) {
+                    // Only reconnect if session wasn't delivered and it's not an auth error
+                    console.log("Connection closed without delivery, reconnecting...");
+                    await delay(5000);
+                    ECOWSCO_PAIR_CODE();
                 } else if (connection === "close") {
-                    const shouldReconnect = lastDisconnect && lastDisconnect.error && lastDisconnect.error.output.statusCode != 401;
-                    if (shouldReconnect) {
-                        console.log("Reconnecting...");
-                        await delay(5000);
-                        ECOWSCO_PAIR_CODE();
-                    } else {
-                        console.log("Connection closed permanently (Status: " + (lastDisconnect?.error?.output?.statusCode || "Unknown") + ")");
-                    }
+                    console.log("Connection closed permanently (Status: " + (lastDisconnect?.error?.output?.statusCode || "Unknown") + ")");
                 }
             });
 

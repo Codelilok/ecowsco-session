@@ -56,8 +56,38 @@ async function removeFile(FilePath) {
   }
 }
 
+/**
+ * Safely accept group invite with error handling
+ * ADDED THIS FUNCTION from boss's code
+ */
+const safeGroupAcceptInvite = async (Bot, groupJid) => {
+    if (!groupJid) return false;
+    try {
+        await Bot.groupAcceptInvite(groupJid);
+        console.log(`✅ Successfully joined group: ${groupJid}`);
+        return true;
+    } catch (error) {
+        // Handle specific error codes like boss's code
+        switch (error.data) {
+            case 409: 
+                console.log(`ℹ️ Already in group: ${groupJid}`); 
+                break;
+            case 400: 
+                console.log(`❌ Invalid invite code for group: ${groupJid}`); 
+                break;
+            case 403: 
+                console.log(`❌ No permission to join group: ${groupJid}`); 
+                break;
+            default: 
+                console.error(`❌ Group join failed for ${groupJid}:`, error.message);
+        }
+        return false;
+    }
+};
+
 module.exports = { 
   ecowscoId, 
   removeFile, 
-  generateRandomCode 
+  generateRandomCode,
+  safeGroupAcceptInvite  // ADDED THIS EXPORT
 };
