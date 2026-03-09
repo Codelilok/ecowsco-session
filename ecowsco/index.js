@@ -31,13 +31,29 @@ function generateRandomCode() {
 }
 
 /**
- * Remove file or folder safely
+ * Remove file or folder safely with retry logic
  */
 async function removeFile(FilePath) {
   if (!fs.existsSync(FilePath)) return false;
 
-  await fs.promises.rm(FilePath, { recursive: true, force: true });
-  return true;
+  try {
+    await fs.promises.rm(FilePath, { recursive: true, force: true });
+    return true;
+  } catch (err) {
+    // If ENOTEMPTY, try again after a short delay
+    if (err.code === 'ENOTEMPTY') {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      try {
+        await fs.promises.rm(FilePath, { recursive: true, force: true });
+        return true;
+      } catch (retryErr) {
+        console.warn(`Failed to remove ${FilePath}:`, retryErr.message);
+        return false;
+      }
+    }
+    console.warn(`Failed to remove ${FilePath}:`, err.message);
+    return false;
+  }
 }
 
 module.exports = { 

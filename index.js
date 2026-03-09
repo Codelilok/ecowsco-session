@@ -16,6 +16,16 @@ const {
 // Prevent Max Listener warnings
 require('events').EventEmitter.defaultMaxListeners = 2000;
 
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+});
+
 // Middlewares
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

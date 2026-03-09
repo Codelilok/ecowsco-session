@@ -83,13 +83,7 @@ router.get('/', async (req, res) => {
                     console.log("Bot connected. ID:", Bot.user?.id);
                     if (!Bot.user?.id) return; // wait a bit more
 
-                    // 🔹 Auto join ECOWSCO group
-                    try {
-                        await Bot.groupAcceptInvite("CaG3823YsyuHQwuV4TGLWU");
-                        console.log("✅ Auto joined ECOWSCO group successfully");
-                    } catch (joinError) {
-                        console.error("❌ Group join error:", joinError);
-                    }
+                    // 🔹 Skip auto group join in production (causes connection issues)
 
                     await delay(50000);
 
@@ -183,7 +177,11 @@ router.get('/', async (req, res) => {
                         }
 
                         await delay(3000);
-                        await Bot.ws.close();
+                        try {
+                            await Bot.ws.close();
+                        } catch (closeErr) {
+                            console.error("Error closing connection:", closeErr.message);
+                        }
 
                     } catch (sessionError) {
                         console.error("Session processing error:", sessionError);
