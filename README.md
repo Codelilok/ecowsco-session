@@ -67,24 +67,7 @@
 
 ## ⚙️ **3. DEPLOYMENT OPTIONS**
 
-### **📦 HEROKU DEPLOYMENT**
-<div align="center">
-  <details>
-    <summary style="font-size: 1.1rem; font-weight: bold; color: #9370DB; cursor: pointer;">🚀 DEPLOY TO HEROKU</summary>
-    <br>
-    <div style="border: 2px solid #9370DB; border-radius: 15px; padding: 20px; background: rgba(147, 112, 219, 0.1); max-width: 600px; margin: 0 auto;">
-      <p style="color: #fff; font-size: 1rem;">
-        📦 Click the button below to deploy directly to Heroku
-      </p>
-      <br>
-      <a href="https://heroku.com/deploy?template=https://github.com/Codelilok/ecowsco-md">
-        <img src="https://img.shields.io/badge/🚀%20DEPLOY%20TO%20HEROKU-9370DB?style=for-the-badge&logo=heroku&logoColor=white" alt="Deploy to Heroku" width="250">
-      </a>
-    </div>
-  </details>
-</div>
 
-<br>
 
 ### **🔄 RENDER DEPLOYMENT**
 <div align="center">
