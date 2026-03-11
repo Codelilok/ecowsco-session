@@ -1,2 +1,7 @@
+modules = ["nodejs-20"]
 [agent]
 expertMode = true
+
+[deployment]
+deploymentTarget = "cloudrun"
+run = ["sh", "-c", "npm start"]
