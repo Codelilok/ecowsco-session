@@ -1,140 +1,363 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ECOWSCO-MD | WhatsApp Bot</title>
+    <title>ECOWSCO-MD • next-gen session</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --blue1: rgba(30,144,255,0.3);
-            --blue2: rgba(0,191,255,0.3);
-            --text-light: #f8f9fa;
-            --gray: #adb5bd;
-            --shadow: 0 10px 30px rgba(0,0,0,0.2);
+        /* ----- modern reset & base ----- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-
-        * { margin:0; padding:0; box-sizing:border-box; }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #0a1b2a;
-            color: var(--text-light);
+            font-family: 'Inter', 'Poppins', system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at 30% 10%, #0b1f2e, #051017 90%);
+            color: #ffffff;
             min-height: 100vh;
-            display:flex;
-            flex-direction:column;
-            overflow-x:hidden;
-        }
-
-        /* Floating particles */
-        .particles { position: fixed; top:0; left:0; width:100%; height:100%; z-index:-1; overflow:hidden; }
-        .particle { position:absolute; background: rgba(30,144,255,0.3); border-radius:50%; animation: float linear infinite; }
-        @keyframes float { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(-100vh) rotate(360deg); } }
-
-        /* Glass Hero Card */
-        .glass-card {
-            max-width: 700px;
-            margin: 10vh auto 5vh;
-            background: rgba(30,144,255,0.2);
-            backdrop-filter: blur(15px);
-            padding: 3rem 2rem;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: var(--shadow);
-            border: 1px solid rgba(0,191,255,0.3);
-        }
-
-        .glass-card h1 {
-            font-size: 2.8rem;
-            margin-bottom: 1rem;
-        }
-
-        .glass-card p {
-            color: var(--gray);
-            font-size: 1.1rem;
-            line-height:1.6;
-        }
-
-        .hero-buttons {
-            margin-top: 2rem;
             display: flex;
-            gap: 1rem;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+            padding: 1rem;
         }
 
-        .hero-buttons a {
-            padding: 0.8rem 2rem;
-            border-radius: 50px;
-            background: var(--blue1);
-            backdrop-filter: blur(10px);
-            color: var(--text-light);
-            text-decoration: none;
-            font-weight: 600;
-            transition: transform 0.3s, box-shadow 0.3s;
+        /* animated gradient orb background */
+        .orb {
+            position: fixed;
+            width: 70vmax;
+            height: 70vmax;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(0, 180, 255, 0.25), rgba(20, 80, 200, 0.1) 70%);
+            filter: blur(100px);
+            z-index: 0;
+            animation: orbMove 25s infinite alternate ease-in-out;
+            pointer-events: none;
         }
 
-        .hero-buttons a:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(0,191,255,0.4);
+        .orb2 {
+            top: auto;
+            bottom: 0;
+            right: 0;
+            width: 60vmax;
+            height: 60vmax;
+            background: radial-gradient(circle at 70% 70%, rgba(150, 0, 255, 0.15), rgba(0, 180, 255, 0.05));
+            filter: blur(120px);
+            animation: orbMove2 30s infinite alternate;
         }
 
-        /* Footer */
-        footer {
-            background: rgba(0,0,50,0.5);
+        @keyframes orbMove {
+            0% { transform: translate(-10%, -10%) scale(1); }
+            100% { transform: translate(15%, 15%) scale(1.2); }
+        }
+        @keyframes orbMove2 {
+            0% { transform: translate(5%, 5%) scale(1); }
+            100% { transform: translate(-20%, -20%) scale(1.4); }
+        }
+
+        /* particles – subtle tech dots */
+        .particle-field {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .tech-particle {
+            position: absolute;
+            background: rgba(64, 224, 255, 0.25);
+            box-shadow: 0 0 12px #00dcff44;
+            border-radius: 50%;
+            width: 3px;
+            height: 3px;
+            animation: particleDrift 12s infinite linear;
+        }
+
+        @keyframes particleDrift {
+            0% { transform: translateY(0) translateX(0) scale(1); opacity: 0.4; }
+            100% { transform: translateY(-90vh) translateX(20px) scale(0); opacity: 0; }
+        }
+
+        /* ----- main glass card (luxury upgrade) ----- */
+        .hero-card {
+            position: relative;
+            z-index: 20;
+            max-width: 750px;
+            width: 100%;
+            margin: 2rem auto;
+            background: rgba(8, 28, 48, 0.45);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(0, 212, 255, 0.35);
+            border-radius: 48px;
+            padding: 3.5rem 2.5rem;
+            box-shadow: 0 30px 60px -10px rgba(0, 15, 30, 0.8), 0 0 0 1px rgba(0, 255, 255, 0.1) inset;
+            transition: transform 0.3s ease;
             text-align: center;
-            padding: 2rem;
-            border-top: 1px solid rgba(0,191,255,0.3);
+        }
+
+        .hero-card:hover {
+            transform: scale(1.01);
+            border-color: rgba(0, 191, 255, 0.6);
+            box-shadow: 0 35px 70px -5px #00a6ff30;
+        }
+
+        /* badge removed – no .badge section */
+
+        h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            background: linear-gradient(130deg, #ffffff, #a0e7ff, #70d0ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            line-height: 1.1;
+            margin-bottom: 0.6rem;
+            text-shadow: 0 0 15px #00c8ff80;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            font-weight: 300;
+            color: #ccf0ff;
+            margin-bottom: 2.5rem;
+            border-bottom: 1px dashed #3b7f9f;
+            padding-bottom: 1.2rem;
+            display: inline-block;
+        }
+
+        .desc {
+            color: rgba(210, 235, 255, 0.9);
+            font-size: 1.15rem;
+            line-height: 1.6;
+            max-width: 550px;
+            margin: 0 auto 2.5rem auto;
+            font-weight: 300;
+            background: rgba(0, 50, 80, 0.2);
+            padding: 1rem 1.8rem;
+            border-radius: 60px;
+            backdrop-filter: blur(2px);
+        }
+
+        /* action buttons — both use secondary style now */
+        .button-group {
+            display: flex;
+            gap: 1.8rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 2.2rem 0 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 1rem 2.8rem;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            text-decoration: none;
+            transition: 0.25s ease;
+            border: 1px solid transparent;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            letter-spacing: 0.3px;
             backdrop-filter: blur(10px);
         }
 
-        footer p {
-            color: var(--text-light);
-            font-size: 1rem;
+        /* Both buttons now use the secondary style */
+        .btn {
+            background: rgba(20, 40, 65, 0.7);
+            backdrop-filter: blur(15px);
+            color: #e0f5ff;
+            border: 1px solid rgba(0, 191, 255, 0.6);
+            box-shadow: 0 0 15px #005b8b30;
         }
 
-        @media (max-width:768px){
-            .glass-card { margin: 8vh 1rem 5vh; }
-            .glass-card h1 { font-size:2rem; }
-            .hero-buttons { flex-direction: column; }
-            .hero-buttons a { width:100%; text-align:center; }
+        .btn i {
+            color: #6cd4ff;
+        }
+
+        .btn:hover {
+            background: rgba(40, 70, 110, 0.7);
+            border-color: #00f0ff;
+            color: white;
+            transform: translateY(-5px);
+            box-shadow: 0 0 30px #00b3ff70;
+        }
+
+        /* Remove primary button specific styles */
+        .btn-primary, .btn-secondary {
+            /* All buttons use the same style now */
+        }
+
+        /* features mini list */
+        .feature-badge {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.5rem 2rem;
+            margin: 3rem 0 1rem;
+            font-size: 0.95rem;
+            color: #b0e6ff;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 191, 255, 0.1);
+            padding: 0.4rem 1.4rem;
+            border-radius: 40px;
+            border: 1px solid rgba(64, 224, 255, 0.25);
+            backdrop-filter: blur(5px);
+        }
+
+        .feature-item i {
+            color: #3ee0ff;
+        }
+
+        /* footer — crisp */
+        .footer {
+            position: relative;
+            z-index: 30;
+            width: 100%;
+            max-width: 750px;
+            margin: 2rem auto 1rem;
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(0, 20, 35, 0.5);
+            backdrop-filter: blur(12px);
+            border-radius: 60px;
+            border: 1px solid rgba(0, 191, 255, 0.25);
+            font-size: 1rem;
+            font-weight: 300;
+            color: #bddcff;
+        }
+
+        .footer strong {
+            color: #80e2ff;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .footer i {
+            margin: 0 4px;
+            color: #ff3b6f;
+        }
+
+        /* responsiveness */
+        @media (max-width: 600px) {
+            h1 { font-size: 2.8rem; }
+            .hero-card { padding: 2rem 1.2rem; border-radius: 36px; }
+            .subtitle { font-size: 1rem; }
+            .desc { font-size: 1rem; padding: 0.8rem 1.2rem; }
+            .btn { padding: 0.9rem 1.8rem; font-size: 1rem; }
+            .button-group { gap: 1rem; }
+            .feature-item { padding: 0.3rem 1rem; font-size: 0.8rem; }
+        }
+        @media (max-width: 420px) {
+            .button-group { flex-direction: column; width: 100%; }
+            .btn { width: 100%; }
         }
     </style>
 </head>
 <body>
-    <!-- Particles Background -->
-    <div class="particles" id="particles"></div>
+    <!-- dynamic orbs + particle system -->
+    <div class="orb" style="top: -10%; left: -10%;"></div>
+    <div class="orb orb2"></div>
 
-    <!-- Hero Card -->
-    <div class="glass-card">
+    <div class="particle-field" id="particleField"></div>
+
+    <!-- main glass card - upgraded UI (badge completely removed) -->
+    <div class="hero-card">
+        <!-- badge intentionally omitted -->
         <h1>ECOWSCO-MD</h1>
-        <p>Your advanced WhatsApp bot session management</p>
-        <div class="hero-buttons">
-            <a href="./pair"><i class="fas fa-link"></i> Get Pair Code</a>
-            <a href="./qr"><i class="fas fa-qrcode"></i> Scan QR Code</a>
+        <div class="subtitle">
+            <i class="fa-regular fa-circle-check" style="color: #4ae2ff;"></i> seamless & secure
+        </div>
+        <p class="desc">
+            <i class="fa-regular fa-gem" style="margin-right: 6px; color: #78e0ff;"></i> 
+            Advanced WhatsApp bot session management – pair with code or scan QR instantly.
+        </p>
+
+        <!-- CTA buttons (both styled like QR code) -->
+        <div class="button-group">
+            <a href="./pair" class="btn">
+                <i class="fas fa-link"></i> Get Pair Code
+            </a>
+            <a href="./qr" class="btn">
+                <i class="fas fa-qrcode"></i> Scan QR Code
+            </a>
+        </div>
+
+        <!-- micro feature list -->
+        <div class="feature-badge">
+            <span class="feature-item"><i class="fa-regular fa-clock"></i> instant sync</span>
+            <span class="feature-item"><i class="fa-solid fa-shield-halved"></i> encrypted</span>
+            <span class="feature-item"><i class="fa-regular fa-key"></i> multi-device</span>
+            <span class="feature-item"><i class="fa-regular fa-star"></i> 24/7 active</span>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer>
-        <p>MADE BY THEAIKID | © 2026 | ECOWSCO-MD</p>
-    </footer>
+    <!-- footer with personality -->
+    <div class="footer">
+        <p>
+            <i class="fa-regular fa-crown" style="color: #f5d742;"></i> 
+            <strong>MADE BY THEAIKID</strong> 
+            <i class="fa-regular fa-crown" style="color: #f5d742;"></i> 
+            <span style="margin:0 6px;">|</span> © 2026 ECOWSCO-MD 
+            <span style="margin:0 6px;">|</span> 
+            <i class="fa-regular fa-heart" style="color: #ff6f91;"></i> next-gen bot
+        </p>
+    </div>
 
-    <!-- Particle JS -->
+    <!-- particle generator script (refined) -->
     <script>
-        const particlesContainer = document.getElementById('particles');
-        const numParticles = 50;
-        for(let i=0;i<numParticles;i++){
-            const p = document.createElement('div');
-            p.classList.add('particle');
-            let size = Math.random()*6+4;
-            p.style.width = size+'px';
-            p.style.height = size+'px';
-            p.style.left = Math.random()*100+'%';
-            p.style.top = Math.random()*100+'%';
-            p.style.animationDuration = (5 + Math.random()*10)+'s';
-            particlesContainer.appendChild(p);
-        }
+        (function createParticles() {
+            const container = document.getElementById('particleField');
+            const particleCount = 65;  // more dynamic
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('span');
+                particle.className = 'tech-particle';
+                const size = Math.random() * 5 + 2;  // 2–7px
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.bottom = '0';  // start from bottom
+                particle.style.animationDuration = (6 + Math.random() * 12) + 's';
+                particle.style.animationDelay = (Math.random() * 5) + 's';
+                particle.style.opacity = 0.2 + Math.random() * 0.4;
+                particle.style.backgroundColor = `rgba(${140 + Math.random()*80}, 230, 255, 0.7)`;
+                container.appendChild(particle);
+            }
+        })();
+
+        // additional floating micro-interaction on card (optional)
+        const card = document.querySelector('.hero-card');
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left; 
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const moveX = (x - centerX) * 0.01;
+            const moveY = (y - centerY) * 0.01;
+            card.style.transform = `scale(1.01) translate(${moveX}px, ${moveY}px)`;
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'scale(1) translate(0,0)';
+        });
     </script>
 </body>
 </html>
