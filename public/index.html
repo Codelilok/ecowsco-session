@@ -110,7 +110,36 @@
             box-shadow: 0 35px 70px -5px #00a6ff30;
         }
 
-        /* badge removed – no .badge section */
+        /* Status badge with green dot - BLUE badge glow, GREEN dot glow */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 50, 30, 0.3);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 191, 255, 0.4);
+            color: #d0ffe0;
+            font-weight: 500;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+            padding: 0.5rem 1.4rem;
+            border-radius: 60px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.3);  /* BLUE glow around badge */
+        }
+
+        .status-badge i {
+            color: #2ecc71;
+            font-size: 0.7rem;
+            filter: drop-shadow(0 0 8px #2ecc71);  /* GREEN glow around dot */
+            animation: subtlePulse 2s infinite;
+        }
+
+        @keyframes subtlePulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
 
         h1 {
             font-size: 4rem;
@@ -195,11 +224,6 @@
             box-shadow: 0 0 30px #00b3ff70;
         }
 
-        /* Remove primary button specific styles */
-        .btn-primary, .btn-secondary {
-            /* All buttons use the same style now */
-        }
-
         /* features mini list */
         .feature-badge {
             display: flex;
@@ -264,6 +288,7 @@
             .btn { padding: 0.9rem 1.8rem; font-size: 1rem; }
             .button-group { gap: 1rem; }
             .feature-item { padding: 0.3rem 1rem; font-size: 0.8rem; }
+            .status-badge { padding: 0.4rem 1.2rem; font-size: 0.8rem; }
         }
         @media (max-width: 420px) {
             .button-group { flex-direction: column; width: 100%; }
@@ -278,9 +303,14 @@
 
     <div class="particle-field" id="particleField"></div>
 
-    <!-- main glass card - upgraded UI (badge completely removed) -->
+    <!-- main glass card - upgraded UI with status badge -->
     <div class="hero-card">
-        <!-- badge intentionally omitted -->
+        <!-- Status badge with green dot - BLUE badge glow, GREEN dot glow -->
+        <div class="status-badge">
+            <i class="fa-solid fa-circle"></i>
+            Session Server Online
+        </div>
+        
         <h1>ECOWSCO-MD</h1>
         <div class="subtitle">
             <i class="fa-regular fa-circle-check" style="color: #4ae2ff;"></i> seamless & secure
